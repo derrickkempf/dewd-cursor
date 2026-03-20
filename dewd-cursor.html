@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dewd cursor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:ital@0;1&display=swap');
+
+    /* ============================================================
+       THEME — change these to restyle everything
+       ============================================================ */
+    :root {
+      /* Page colors */
+      --bg:     #0e0e0e;
+      --ink:    #f0ece3;
+      --accent: #e8ff3c;
+      --mid:    #2a2a2a;
+
+      /* Cursor colors */
+      --cursor-fill:       #111;          /* default hand color (black parts) */
+      --cursor-fill-white: #fff;          /* highlight parts of the hand */
+      --cursor-hover-fill: var(--accent); /* hand color on hover / click */
+      --cursor-glow:       var(--accent); /* drop-shadow color on hover */
+
+      /* Cursor size */
+      --cursor-size: 56px;
+
+      /* Trail dot color */
+      --trail-color: var(--accent);
+    }
+    /* ============================================================ */
+
+
+    /* ── Reset ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Hide the system cursor */
+    *, *::before, *::after { cursor: none !important; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+
+    /* ============================================================
+       CURSOR STYLES
+       To change colors: edit the variables in :root above.
+       To remove the glow: set --cursor-glow to transparent.
+       To disable hover tint: set --cursor-hover-fill to --cursor-fill.
+       ============================================================ */
+
+    #cursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--cursor-size);
+      aspect-ratio: 104.88 / 100.34; /* matches SVG viewBox — scales height automatically */
+      pointer-events: none;
+      z-index: 9999;
+      translate: -4px -4px; /* hotspot: tip of the index finger */
+      will-change: left, top;
+    }
+
+    #cursor svg {
+      width: 100%; height: 100%;
+      transition: transform 0.15s ease, filter 0.2s ease;
+    }
+
+    /* Two-color hand: black body + white highlights */
+    #cursor svg .cls-black { fill: var(--cursor-fill); }
+    #cursor svg .cls-white  { fill: var(--cursor-fill-white); }
+
+    /* Hover state — tints black parts, adds glow */
+    #cursor.is-hover svg {
+      transform: scale(1.15) rotate(-8deg);
+      filter: drop-shadow(0 0 8px var(--cursor-glow));
+    }
+    #cursor.is-hover svg .cls-black { fill: var(--cursor-hover-fill); }
+
+    /* Click state — shrinks and rotates */
+    #cursor.is-click svg { transform: scale(0.88) rotate(6deg); }
+    #cursor.is-click svg .cls-black { fill: var(--cursor-hover-fill); }
+
+
+    /* ============================================================
+       TRAIL DOTS
+       To disable via CSS: add  display: none;  to .trail-dot
+       To disable via JS:  set  CURSOR.trail.enabled = false  below
+       ============================================================ */
+    .trail-dot {
+      position: fixed;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--trail-color);
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0;
+      translate: -50% -50%;
+    }
+
+
+    /* ── Coordinate readout (bottom-right corner) ── */
+    #coords {
+      position: fixed;
+      bottom: 20px; right: 28px;
+      font-size: 0.65rem;
+      color: var(--accent);
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+
+    /* ── Page layout ── */
+    .page {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+      padding: 48px;
+      gap: 60px;
+    }
+
+    header { display: flex; justify-content: space-between; align-items: flex-start; }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.4;
+      padding-top: 4px;
+    }
+
+    .hero { display: flex; flex-direction: column; justify-content: center; gap: 32px; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+
+    .sub { max-width: 480px; font-size: 0.85rem; line-height: 1.8; opacity: 0.55; }
+
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+
+    .card {
+      background: var(--mid);
+      border: 1px solid #333;
+      padding: 28px;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { background: #1e1e1e; border-color: var(--accent); transform: translateY(-3px); }
+
+    .card-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 8px; letter-spacing: 0.04em; }
+    .card-text  { font-size: 0.78rem; opacity: 0.5; line-height: 1.7; }
+
+    .actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+
+    .btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      padding: 14px 28px;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #0e0e0e; }
+    .btn-primary:hover { background: #fff; }
+    .btn-ghost { background: transparent; color: var(--ink); border: 1px solid #444; }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 1px solid #222;
+      font-size: 0.72rem;
+      opacity: 0.35;
+    }
+
+    @media (max-width: 700px) {
+      .page { padding: 24px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cursor — SVG paths are kept verbatim from the original file.
+       cls-black = originally unfilled paths (default black)
+       cls-white = originally class="cls-1" paths (white highlights) -->
+  <div id="cursor">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104.88 100.34">
+      <path class="cls-black" d="M58,14.26c2,.42,3.32-1.76,4.97-.29l.51,3.34c5.13-.36,3.86,1.67,6.06,3.88,2.03,2.04,5.14,2.01,7.45,5.24,1.96,2.74,2.1,6.28,3.49,8.66.54.92,1.75,1.24,1.83,1.61.44,2.23-2.54,3.61,2.61,4.71,1.06.96-.75,3.41.94,4.28.94-1.42,3.12-1.53,3.9.01.61,1.21-3.06,3.44-.08,5.56,1.29.92,2.71.32,4.1.58l.38,2.11-2.5,2.5c.67,1.83,9.19,1.33,4.94,4.4-.84.6-3.21.65-2.73,1.66.52,1.09,8.18.21,4.82,3.46-.64.62-2.1.25-2.06,1.23,4.59.69,10,10.17,7.75,14.1-2.1,3.66-8.52,7.36-12.58,8.38-6.9,1.74-11.07,4.48-17.43,7.94-1.93,1.05-4.33,4.16-7.36,1.95-.28-.2-4.35-4.83-4.51-5.13-.51-.96-.48-2.56-.73-2.85-.15-.18-3.07-1.07-3.54-2.29l-3.21,1.66c-1.17-2.48-5.1-1.79-7.92-2.63-2.85-.85-5.5-3.04-8.26-3.87-5.31-1.6-10.2.11-14.68-4.62-1.06-1.12-1.97-3.61-3.35-4.42-1.14-.66-2.01.28-2.8-.42-.78-.68-.76-2.29-1.58-3.43-1.28-1.77-3.62-2.16-5-3.27-5.4-4.34-7.25-10.49-10.72-16.31-1.4-9.42,10.87-7.99,16.25-4.67,3.71,2.28,8.31,7.67,12.42,9.64.9.43,6.11,1.25,6.59.85-.23-1.88-2.26-2.69-3.21-4.23-3.53-5.7,1.07-8.72,2.11-13.97-2.18.66-3.34,3.81-5.22,4.97-2.58,1.59-7.12.68-8.59-1.91-.78-1.36-.81-11.76-.49-13.79.19-1.2,3.12-6.54,2.72-6.92-3.99.88-8.27-4.72-10.88-5.39-1.6-.41-3.06.05-4.96-.55C3.49,14.78-.69,9.42.1,5.17.43,3.4,4.37.53,6.13.14c3.45-.77,8.49,1.93,11.93,2.49,5.81.94,10.68-.24,16.4,2.9,1.44.79,3.91,3.46,4.63,3.67,1.96.58,3.75-1.37,6.45-.99,2.33.33,6.04,3.4,7.89,3.76,2.16.41,4.86-2.3,4.56,2.29ZM7.77,3.82c-6.25-.92-1.4,9.85,1.88,9.22.64-.12,1.26-1.1,1.97-1.28,2.38-.61,6.43,5.88,10.41,6.27,1.77.17,2.97-2.96,4.83-1.03,1.05,1.09,2.36,6.78,4.45,9.34,1.64,2.01,3.03,2.19,4.66,3.62,3.21,2.81,2.4,5.56,3.58,9.1.68,2.04,3.81,6.14,3.44,7.95-.12.59-1.12,1.12-1.4,1.85-1.86,4.8-1.5,9.16-2.29,14.12-4.91,3.16-8.64,3.53-12.42-1.32s-2.82-3.4-7.44-6.89c-3.95-2.99-6.43-6.53-11.98-6.82-6.81-.36-1.07,5.69.64,8.22,1.97-1.62-.83-3.99-.27-6.05,3.48-.55,4.43,3.92,3.74,6.78-.46,1.92-3.82,4.7.66,5.9.25-1.45,1.7-4.93,3.58-4.41,2.17.61-1.07,4.44-.26,5.51l2.74-.54c.97,1.5-.79,3.15-.28,4.39.62,1.53,6.01,4.71,7.49,6.33,1.45,1.58,1.91,3.68,3.86,4.96,4.09,2.69,11.27,1.62,16,2.75,2.74.66,5.3,3.18,8,3.58,3.06.46,10.17.55,13.18.01,3.63-.65,8.61-7.2,12.89-7.79l.64-3.77h-2.76c-.47-5.51,2.69-3.09,5.04-3.59.97-.21,1.83-1.59,2.84-2.04,1.01-.45,5.89-1.67,5.89-2.37l-.87-1.4c-8.4,5.61-9.88-2.34-.78-2.19l-3.04-7.72c-.86,1.97-1.62,3.76-4.12,2.74-.22-.98.09-1.66.5-2.51,1.25-2.55,5.25-1.69.67-4.22.77-2.06-1.46-2.79-2.29-4.6l-4.4-.25c-.02-2.52,3.18-3.14.55-5.81l-3.86.3c-.88-2.88,1.3-2.88,1.92-3.86,1.61-2.51-1.71-10.41-5.03-10.86-.68-.09-1.42.46-2.42.17-1.31-.38-2.92-2.68-4.27-3-1.31-.31-2.58.74-3.64.42-1.48-.46-.39-2.01-.66-2.75-.56-1.52-13.07-8.36-15.68-7.14-.15,3.23,4.47,2.48,4.89,2.84.14.12.21,1.28.6,1.86,1.52,2.26,3.67.72,5.33,1.89,1.06.75-.08,1.92.45,2.78.42.68,5.71,2.89,7.48,5.25,1.46,1.95,4.94,10.1.39,9.02-1.77-.42-2.18-4.24-3.14-5.72-2.19-3.39-6.12-4.62-9.23-6.76-1.71-1.17-3.74-2.28-5.07-3.2-.8-.56-1.44-2.26-2.81-2.72-5.74,3.27-2.92-.68-3.7-2.87-.62-1.73-3.72-3-4.06-5.08-.47-.33-6.38,3.43-6.02-1.14-.29-.28-6.5,3.18-3.3-2.75-5.75-.36-11.05-1.94-16.73-.53l-.97-2.19ZM28.03,31.56c-4.6-3.12-3.17,7.52-3.12,9.72,4.26-.78,7.09-7.03,3.12-9.72ZM85.72,73.43c-1.03,1.25.24,5.78,1.08,7.15,1.62,2.62,5.58,3.51,8.28,2.5.99-.37,5.05-3.35,5.29-4.14.63-2.1-2.35-7.55-4.29-8.19-2.97-.98-8.35.25-10.36,2.68Z"/>
+      <path class="cls-white" d="M7.77,3.82l.97,2.19c5.68-1.42,10.98.16,16.73.53-3.2,5.93,3.01,2.47,3.3,2.75-.36,4.57,5.55.81,6.02,1.14.34,2.08,3.44,3.35,4.06,5.08.79,2.19-2.04,6.14,3.7,2.87,1.37.46,2,2.16,2.81,2.72,1.33.92,3.37,2.03,5.07,3.2,3.11,2.14,7.04,3.37,9.23,6.76.96,1.48,1.37,5.3,3.14,5.72,4.55,1.08,1.07-7.07-.39-9.02-1.77-2.36-7.06-4.57-7.48-5.25-.53-.86.61-2.03-.45-2.78-1.65-1.17-3.81.37-5.33-1.89-.39-.58-.46-1.74-.6-1.86-.41-.35-5.03.39-4.89-2.84,2.61-1.22,15.12,5.62,15.68,7.14.27.73-.82,2.29.66,2.75,1.06.33,2.33-.72,3.64-.42,1.35.31,2.96,2.62,4.27,3,1,.29,1.74-.26,2.42-.17,3.32.46,6.64,8.35,5.03,10.86-.62.98-2.81.98-1.92,3.86l3.86-.3c2.63,2.67-.58,3.29-.55,5.81l4.4.25c.83,1.81,3.06,2.55,2.29,4.6,4.59,2.52.58,1.66-.67,4.22-.41.85-.72,1.53-.5,2.51,2.5,1.01,3.26-.77,4.12-2.74l3.04,7.72c-9.1-.15-7.62,7.8.78,2.19l.87,1.4c0,.7-4.89,1.92-5.89,2.37-1.01.45-1.88,1.83-2.84,2.04-2.35.51-5.51-1.91-5.04,3.59h2.76s-.64,3.77-.64,3.77c-4.28.59-9.26,7.13-12.89,7.79-3,.54-10.12.44-13.18-.01-2.7-.4-5.26-2.93-8-3.58-4.73-1.14-11.91-.06-16-2.75-1.95-1.28-2.41-3.38-3.86-4.96-1.48-1.62-6.87-4.8-7.49-6.33-.51-1.23,1.25-2.88.28-4.39l-2.74.54c-.81-1.07,2.43-4.91.26-5.51-1.88-.53-3.34,2.96-3.58,4.41-4.48-1.2-1.12-3.98-.66-5.9.68-2.86-.26-7.34-3.74-6.78-.56,2.06,2.24,4.44.27,6.05-1.71-2.54-7.45-8.58-.64-8.22,5.54.29,8.02,3.83,11.98,6.82,4.62,3.5,3.67,2.06,7.44,6.89s7.51,4.48,12.42,1.32c.79-4.95.43-9.31,2.29-14.12.28-.73,1.28-1.26,1.4-1.85.37-1.81-2.76-5.91-3.44-7.95-1.18-3.54-.38-6.29-3.58-9.1-1.63-1.43-3.01-1.6-4.66-3.62-2.09-2.56-3.4-8.25-4.45-9.34-1.86-1.93-3.06,1.2-4.83,1.03-3.98-.39-8.03-6.88-10.41-6.27-.71.18-1.33,1.16-1.97,1.28-3.28.63-8.13-10.13-1.88-9.22ZM44.76,24.18c-.58,3.48,2.73,3.62,4.41,1.37.38-1.81-3.49-1.4-4.41-1.37ZM65.17,48.99c1.77.76,2.9.31,4.17-1.08-2.11-3.39,2.18-3.2,3.27-5.53.9-1.94-.78-2.71-2.47-1.92-1.3.6-5.57,7.68-4.96,8.53ZM63.44,46.32c-2.08-1.17-5.75-.15-5.43,2.67,2.3,1.09,6.28.5,5.43-2.67ZM73.82,46.35c-1.09.33-2.31,2.86-2.69,3.95-.21.62-.61,1.25.38,1.46.83.18,5.52-2.95,5.71-3.67l-.46-1.59c-.68-.45-2.16-.4-2.94-.16ZM82.81,51.21c-2.69-1.18-5.51-.39-6.61,2.45,1.4,3.1,7.87-.58,6.61-2.45ZM62.96,57.27c2.42.19,4.58-.5,6.05-2.48-2.3-2.95-6.05-.98-6.05,2.48ZM76.75,57.27c-1.53-.22-6.68-.01-6.05,2.44.49,1.9,7.47,1.02,6.05-2.44ZM87.16,58.43c-8.16-1.22-4.58,7.21.35,1.61l-.35-1.61ZM79.35,62.33c-1.54.31-2.31,1.84-3.08,3.05l1.38,1.74,3.97-3.04-.45-1.58c-.58-.4-1.19-.29-1.82-.16ZM64.62,66.09c.93.04,1.86.13,2.74-.28,3.3-1.52-2.62-5.92-2.74.28ZM74.36,68.13c2.99-3.54-4.61-3.49-4.27.43.23,2.65,3.35.66,4.27-.43ZM55.79,75.47c.91.94,5.96-3.15,2.74-4.71-2.41-1.17-3.15,3.08-2.74,4.71ZM68.54,74.99c-.17.11-1.63,3.52-.33,3.79,1.44.31,3.84-1.7,3.58-3.02-.17-.83-2.61-1.18-3.24-.77Z"/>
+      <path class="cls-white" d="M85.72,73.43c2.01-2.43,7.4-3.67,10.36-2.68,1.94.64,4.92,6.1,4.29,8.19-.24.79-4.3,3.77-5.29,4.14-2.7,1.01-6.67.12-8.28-2.5-.84-1.36-2.12-5.9-1.08-7.15ZM96,74.41c-1.57.18-8.32-2.76-8.77-.84-.34,2.69,4.86,2.71,5.42,3.64.5.83-.57,2.91.91,3.76,1.88.1,2.66-5.09,2.44-6.56Z"/>
+      <path class="cls-white" d="M28.03,31.56c3.97,2.69,1.14,8.94-3.12,9.72-.05-2.2-1.49-12.84,3.12-9.72Z"/>
+      <path class="cls-black" d="M65.17,48.99c-.61-.85,3.66-7.93,4.96-8.53,1.7-.78,3.37-.01,2.47,1.92-1.08,2.33-5.38,2.14-3.27,5.53-1.27,1.39-2.4,1.84-4.17,1.08Z"/>
+      <path class="cls-black" d="M73.82,46.35c.79-.24,2.27-.29,2.94.16l.46,1.59c-.19.71-4.88,3.84-5.71,3.67-1-.21-.6-.85-.38-1.46.38-1.09,1.6-3.61,2.69-3.95Z"/>
+      <path class="cls-black" d="M82.81,51.21c1.26,1.87-5.22,5.55-6.61,2.45,1.1-2.84,3.92-3.63,6.61-2.45Z"/>
+      <path class="cls-black" d="M79.35,62.33c.63-.13,1.25-.24,1.82.16l.45,1.58-3.97,3.04-1.38-1.74c.77-1.21,1.54-2.73,3.08-3.05Z"/>
+      <path class="cls-black" d="M76.75,57.27c1.42,3.45-5.56,4.34-6.05,2.44-.63-2.45,4.52-2.66,6.05-2.44Z"/>
+      <path class="cls-black" d="M63.44,46.32c.85,3.17-3.14,3.76-5.43,2.67-.31-2.83,3.35-3.84,5.43-2.67Z"/>
+      <path class="cls-black" d="M62.96,57.27c0-3.46,3.75-5.43,6.05-2.48-1.47,1.98-3.63,2.67-6.05,2.48Z"/>
+      <path class="cls-black" d="M87.16,58.43l.35,1.61c-4.93,5.61-8.51-2.82-.35-1.61Z"/>
+      <path class="cls-black" d="M74.36,68.13c-.92,1.09-4.04,3.08-4.27.43-.34-3.93,7.26-3.97,4.27-.43Z"/>
+      <path class="cls-black" d="M55.79,75.47c-.41-1.63.33-5.88,2.74-4.71,3.22,1.56-1.83,5.66-2.74,4.71Z"/>
+      <path class="cls-black" d="M68.54,74.99c.63-.41,3.07-.07,3.24.77.27,1.32-2.14,3.33-3.58,3.02-1.3-.27.17-3.68.33-3.79Z"/>
+      <path class="cls-black" d="M44.76,24.18c.92-.04,4.79-.44,4.41,1.37-1.68,2.26-4.99,2.11-4.41-1.37Z"/>
+      <path class="cls-black" d="M64.62,66.09c.12-6.2,6.05-1.8,2.74-.28-.89.41-1.81.32-2.74.28Z"/>
+      <path class="cls-black" d="M96,74.41c.22,1.47-.56,6.66-2.44,6.56-1.48-.85-.42-2.93-.91-3.76-.56-.93-5.76-.94-5.42-3.64.46-1.93,7.2,1.01,8.77.84Z"/>
+    </svg>
+  </div>
+
+  <div id="coords">0, 0</div>
+
+  <div class="page">
+    <header>
+      <div class="logo">dewd.cursor</div>
+      <div class="tag">custom cursor demo · hover around</div>
+    </header>
+
+    <div class="hero">
+      <h1>point <em>your</em><br>hand here.</h1>
+      <p class="sub">
+        A custom cursor built from a hand-drawn SVG illustration.
+        Move around, hover over elements, click — the hand reacts to everything.
+      </p>
+      <div class="actions">
+        <button class="btn btn-primary">hover me</button>
+        <button class="btn btn-ghost">or me</button>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-num">01</div>
+          <div class="card-title">Hover State</div>
+          <div class="card-text">Cursor tints and tilts when over interactive elements.</div>
+        </div>
+        <div class="card">
+          <div class="card-num">02</div>
+          <div class="card-title">Click State</div>
+          <div class="card-text">Hand clenches — scales down and rotates on mousedown.</div>
+        </div>
+        <div class="card">
+          <div class="card-num">03</div>
+          <div class="card-title">Trail</div>
+          <div class="card-text">Tiny dots fade behind the cursor as you move.</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>dewd-hand-1.svg → custom cursor</span>
+      <span>move your mouse →</span>
+    </footer>
+  </div>
+
+  <script>
+    // ============================================================
+    // CURSOR CONFIG — all tunable values live here
+    // ============================================================
+    const CURSOR = {
+      // Smoothing: lower = snappier, higher = floatier  (try 0.1 – 0.5)
+      smoothing: 0.28,
+
+      // Which elements trigger the hover state
+      interactables: 'a, button, [role="button"], input, textarea, select, label, .card',
+
+      // Show live coordinate readout in the bottom-right corner
+      showCoords: true,
+
+      trail: {
+        enabled:     true,   // false = no trail at all
+        count:       12,     // dot pool size (more = longer trail)
+        intervalMs:  40,     // min ms between spawns (lower = denser)
+        fadeDuration:'0.5s'  // CSS duration for dot fade-out
+      }
+    };
+    // ============================================================
+
+
+    const cursorEl = document.getElementById('cursor');
+    const coordsEl = document.getElementById('coords');
+
+    if (!CURSOR.showCoords) coordsEl.style.display = 'none';
+
+    // ── Smooth follow ──
+    let mx = -200, my = -200, cx = -200, cy = -200;
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    (function tick() {
+      cx = lerp(cx, mx, CURSOR.smoothing);
+      cy = lerp(cy, my, CURSOR.smoothing);
+      cursorEl.style.left = cx + 'px';
+      cursorEl.style.top  = cy + 'px';
+      requestAnimationFrame(tick);
+    })();
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX;
+      my = e.clientY;
+      if (CURSOR.showCoords) coordsEl.textContent = `${Math.round(e.clientX)}, ${Math.round(e.clientY)}`;
+      if (CURSOR.trail.enabled) spawnTrail(e.clientX, e.clientY);
+    });
+
+    // ── Hover state ──
+    document.addEventListener('mouseover', e => {
+      if (e.target.closest(CURSOR.interactables)) cursorEl.classList.add('is-hover');
+    });
+    document.addEventListener('mouseout', e => {
+      if (e.target.closest(CURSOR.interactables)) cursorEl.classList.remove('is-hover');
+    });
+
+    // ── Click state ──
+    document.addEventListener('mousedown', () => cursorEl.classList.add('is-click'));
+    document.addEventListener('mouseup',   () => cursorEl.classList.remove('is-click'));
+
+    // ── Trail dots ──
+    const trailPool = [];
+    let trailIdx = 0, lastTrailTime = 0;
+
+    if (CURSOR.trail.enabled) {
+      for (let i = 0; i < CURSOR.trail.count; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'trail-dot';
+        document.body.appendChild(dot);
+        trailPool.push(dot);
+      }
+    }
+
+    function spawnTrail(x, y) {
+      const now = Date.now();
+      if (now - lastTrailTime < CURSOR.trail.intervalMs) return;
+      lastTrailTime = now;
+
+      const dot = trailPool[trailIdx++ % CURSOR.trail.count];
+      dot.style.left = x + 'px';
+      dot.style.top  = y + 'px';
+      dot.style.transition = 'none';
+      dot.style.opacity = '0.6';
+      requestAnimationFrame(() => {
+        dot.style.transition = `opacity ${CURSOR.trail.fadeDuration} ease`;
+        dot.style.opacity = '0';
+      });
+    }
+  </script>
+</body>
+</html>
