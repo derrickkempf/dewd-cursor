@@ -6,7 +6,7 @@ Hand-drawn SVG cursors for your website. Pick a hand, tweak the colors, paste on
 
 ## What it is
 
-Five hand-illustrated cursors made from original drawings — not stock icons, not clip art. Each one has two fill layers (black body + white highlights) so they look like actual ink on paper. They react to hover, click, and movement.
+Five hand-illustrated cursors made from original drawings of weird, hairy hands. Each one has two fill layers (black body + white highlights) so they look like actual ink on paper. They react to hover, click, and movement.
 
 **→ Try the picker at [dewd.cool/pages/cursor](https://dewd.cool/pages/cursor)**
 
